@@ -1,0 +1,104 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+venv.bak/
+env.bak/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+*.py.orig
+.hypothesis/
+.tox/
+.ipynb_checkpoints
+
+# Node/JavaScript/TypeScript
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+dist/
+build/
+.next/
+.nuxt/
+out/
+.cache
+.vuepress/dist
+.serverless/
+.fusebox/
+.dynamodb/
+.tern-port
+*.tsbuildinfo
+tsconfig*.tsbuildinfo
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+/logs/
+/var/log/
+
+# Cache
+.cache/
+*.cache
+
+# Test results
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Docker
+.docker/
+
+# Config (sensitive)
+config/policy.local.yaml
+.env
+.env.local
+
+# State
+/var/lib/falco-firewall/
+/var/cache/falco-firewall/
+
+# Temporary
+*.tmp
+tmp/
+temp/
+temp_work_no_commit/
