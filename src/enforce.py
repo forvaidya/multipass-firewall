@@ -19,6 +19,12 @@ from dataclasses import dataclass, asdict
 from datetime import datetime, timedelta
 import yaml
 
+try:
+    from ebpf_firewall import EBPFFirewall
+    EBPF_AVAILABLE = True
+except ImportError:
+    EBPF_AVAILABLE = False
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -300,12 +306,80 @@ class EnforcementDaemon:
         self.running = True
         self.policy_manager = PolicyManager(policy_file)
         self.nftables = NFTablesManager()
+        self.ebpf = None
+        self.ebpf_enabled = False
+
+        # Initialize eBPF if available
+        if EBPF_AVAILABLE:
+            try:
+                iface = self._detect_primary_interface()
+                if iface:
+                    log_file = '/var/log/falco-firewall/ebpf-blocked.log'
+                    map_size = self.policy_manager.policy.get('performance', {}).get(
+                        'connection_map_size', 1024)
+                    self.ebpf = EBPFFirewall(
+                        interface=iface,
+                        log_file=log_file,
+                        map_size=map_size
+                    )
+                    self.ebpf_enabled = True
+                    logger.info("eBPF enforcement layer enabled")
+            except Exception as e:
+                logger.warning(f"eBPF initialization failed, continuing without eBPF: {e}")
+
+        # Register signal handlers
+        signal.signal(signal.SIGHUP, self._on_reload_signal)
+        signal.signal(signal.SIGTERM, self._on_shutdown_signal)
+        signal.signal(signal.SIGINT, self._on_shutdown_signal)
+
         self._apply_rules()
 
+    def _detect_primary_interface(self) -> Optional[str]:
+        """Detect the primary network interface from default route"""
+        try:
+            result = subprocess.run(
+                ['ip', 'route', 'show', 'default'],
+                capture_output=True,
+                text=True,
+                check=False
+            )
+            # Parse 'default via ... dev eth0 ...'
+            parts = result.stdout.split()
+            if 'dev' in parts:
+                idx = parts.index('dev')
+                if idx + 1 < len(parts):
+                    return parts[idx + 1]
+        except Exception as e:
+            logger.warning(f"Failed to detect primary interface: {e}")
+        return None
+
+    def _on_reload_signal(self, signum, frame):
+        """Handle SIGHUP for policy reload"""
+        logger.info("Received SIGHUP, reloading policy")
+        try:
+            self.policy_manager.load_policy()
+            self._apply_rules()
+        except Exception as e:
+            logger.error(f"Error reloading policy: {e}")
+
+    def _on_shutdown_signal(self, signum, frame):
+        """Handle SIGTERM/SIGINT for graceful shutdown"""
+        logger.info(f"Received signal {signum}, shutting down")
+        self.stop()
+
     def _apply_rules(self):
-        """Apply firewall rules"""
+        """Apply firewall rules to both nftables and eBPF"""
+        # Apply nftables rules
         script = self.nftables.create_rules(self.policy_manager.destinations)
         self.nftables.apply_rules(script)
+
+        # Update eBPF map with allowed IPs
+        if self.ebpf_enabled and self.ebpf:
+            try:
+                allowed_ips = self.policy_manager.get_allowed_ips()
+                self.ebpf.update_allowlist(allowed_ips)
+            except Exception as e:
+                logger.error(f"Failed to update eBPF allowlist: {e}")
 
     def run(self):
         """Run enforcement daemon"""
@@ -324,6 +398,13 @@ class EnforcementDaemon:
         """Stop daemon"""
         logger.info("Stopping Falco Firewall Enforcement Daemon")
         self.running = False
+
+        # Detach eBPF
+        if self.ebpf_enabled and self.ebpf:
+            try:
+                self.ebpf.detach()
+            except Exception as e:
+                logger.warning(f"Error detaching eBPF: {e}")
 
     def show_status(self):
         """Show current status"""
