@@ -1,0 +1,177 @@
+---
+# Falco Rules for Outbound Firewall Policy Detection
+
+- rule: Outbound Connection Attempt
+  desc: Detect all outbound TCP connections
+  condition: >
+    outbound and
+    container_id != host and
+    evt.type = "connect" and
+    fd.stype = "ipv4" and
+    fd.l4proto = "tcp"
+  output: >
+    Outbound TCP Connection
+    (user=%user.name uid=%user.uid gid=%user.gid process=%proc.name pid=%proc.pid ppid=%proc.ppid)
+    (connection=%fd.sip:%fd.sport->%fd.dip:%fd.dport)
+    (container_id=%container.id image=%container.image.repository)
+  priority: INFO
+  tags: [outbound, network, firewall]
+
+- rule: Outbound DNS Query
+  desc: Detect DNS queries (UDP port 53)
+  condition: >
+    outbound and
+    fd.stype = "ipv4" and
+    fd.l4proto = "udp" and
+    fd.dport = 53
+  output: >
+    DNS Query Detected
+    (user=%user.name process=%proc.name pid=%proc.pid)
+    (query_dest=%fd.dip:%fd.dport)
+  priority: DEBUG
+  tags: [outbound, dns, firewall]
+
+- rule: Policy Violation - Unauthorized IP
+  desc: Connection to non-whitelisted IP address
+  condition: >
+    outbound and
+    fd.stype = "ipv4" and
+    fd.l4proto = "tcp" and
+    not allowed_destination
+  output: >
+    POLICY VIOLATION - Unauthorized IP Connection
+    (user=%user.name uid=%user.uid process=%proc.name pid=%proc.pid cmd=%proc.cmdline)
+    (src=%fd.sip:%fd.sport dst=%fd.dip:%fd.dport)
+    (container=%container.id image=%container.image.repository)
+    (hostname=%env.HOSTNAME)
+  priority: WARNING
+  tags: [outbound, policy_violation, security]
+
+- rule: Policy Violation - Unauthorized Domain
+  desc: Connection to non-whitelisted domain
+  condition: >
+    outbound and
+    fd.stype = "ipv4" and
+    fd.l4proto = "tcp" and
+    not allowed_domain
+  output: >
+    POLICY VIOLATION - Unauthorized Domain Connection
+    (user=%user.name uid=%user.uid process=%proc.name pid=%proc.pid cmd=%proc.cmdline)
+    (dst=%fd.dip:%fd.dport resolved_domain=%fd.snet)
+    (container=%container.id)
+  priority: WARNING
+  tags: [outbound, policy_violation, security]
+
+- rule: Suspicious Port - Tunneling
+  desc: Connection to common tunneling ports
+  condition: >
+    outbound and
+    fd.stype = "ipv4" and
+    fd.l4proto = "tcp" and
+    fd.dport in (1194, 1195, 8888, 9090, 8080, 5000)
+  output: >
+    Suspicious Tunneling Port Access
+    (user=%user.name process=%proc.name pid=%proc.pid)
+    (connection=%fd.sip:%fd.sport->%fd.dip:%fd.dport)
+  priority: NOTICE
+  tags: [outbound, suspicious, tunneling]
+
+- rule: Prohibited Country Access
+  desc: Connection to known prohibited country (example)
+  condition: >
+    outbound and
+    fd.stype = "ipv4" and
+    prohibited_country
+  output: >
+    SECURITY ALERT - Prohibited Country Access
+    (user=%user.name uid=%user.uid process=%proc.name pid=%proc.pid)
+    (destination=%fd.dip:%fd.dport country=%geoip.country)
+  priority: CRITICAL
+  tags: [outbound, compliance, security]
+
+- rule: Data Exfiltration Attempt
+  desc: Unusual outbound data transfer size
+  condition: >
+    outbound and
+    fd.stype = "ipv4" and
+    fd.l4proto = "tcp" and
+    fd.bytesout > 104857600
+  output: >
+    Potential Data Exfiltration
+    (user=%user.name process=%proc.name pid=%proc.pid)
+    (destination=%fd.dip:%fd.dport)
+    (bytes_sent=%fd.bytesout)
+  priority: CRITICAL
+  tags: [outbound, exfiltration, security]
+
+- rule: Metadata Service Access Violation
+  desc: Non-whitelisted process accessing AWS metadata service
+  condition: >
+    outbound and
+    fd.stype = "ipv4" and
+    fd.dip = "169.254.169.254" and
+    not metadata_whitelisted_process
+  output: >
+    Unauthorized Metadata Service Access
+    (user=%user.name uid=%user.uid process=%proc.name pid=%proc.pid)
+    (accessing_endpoint=%fd.dip:%fd.dport)
+  priority: WARNING
+  tags: [aws, metadata, security]
+
+- rule: Connection to Private IP
+  desc: Outbound connection to private IP from container
+  condition: >
+    outbound and
+    container_id != host and
+    fd.stype = "ipv4" and
+    private_destination
+  output: >
+    Private IP Access from Container
+    (user=%user.name process=%proc.name pid=%proc.pid)
+    (source=%fd.sip container=%container.id)
+    (destination=%fd.dip:%fd.dport)
+  priority: INFO
+  tags: [outbound, container, network]
+
+- rule: Failed Connection Attempt - Retry
+  desc: Repeated failed connections to same destination
+  condition: >
+    outbound and
+    fd.stype = "ipv4" and
+    connection_reset and
+    retry_count > 5
+  output: >
+    Repeated Connection Failures
+    (user=%user.name process=%proc.name pid=%proc.pid)
+    (failed_destination=%fd.dip:%fd.dport retry_count=%retry_count)
+  priority: NOTICE
+  tags: [outbound, network, troubleshooting]
+
+# Macros for policy definitions
+- macro: outbound
+  condition: (evt.type in (sendmsg, sendto) and fd.type = "ipv4")
+
+- macro: allowed_destination
+  condition: (fd.dip in (allowed_ips))
+
+- macro: allowed_domain
+  condition: (fd.snet in (allowed_domains))
+
+- macro: metadata_whitelisted_process
+  condition: (proc.name in (aws-cli, ec2-instance-connect, amazon-ssm-agent))
+
+- macro: prohibited_country
+  condition: (false)  # Configure with GeoIP service
+
+- macro: private_destination
+  condition: (fd.dip in (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16))
+
+- macro: connection_reset
+  condition: (evt.res = -104)  # Connection reset error
+
+# Lists for allowed destinations (populated by enforce.py)
+- list: allowed_ips
+  items: []  # Dynamically populated
+
+- list: allowed_domains
+  items: []  # Dynamically populated

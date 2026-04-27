@@ -1,0 +1,20 @@
+FROM ubuntu:22.04
+
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    dnsutils \
+    netcat-openbsd \
+    python3-pip \
+    python3-requests \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip3 install pyyaml
+
+COPY src/ /opt/falco-firewall/
+COPY config/ /etc/falco-firewall/
+
+RUN chmod +x /opt/falco-firewall/*.py
+
+# Keep container running
+CMD ["tail", "-f", "/dev/null"]

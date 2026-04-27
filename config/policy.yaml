@@ -1,0 +1,179 @@
+---
+# Falco Firewall Policy Configuration
+# Define allowed outbound destinations for your application
+
+version: "1.0"
+description: "Production outbound firewall policy"
+
+# Global settings
+global:
+  # How long to cache DNS resolutions (seconds)
+  dns_cache_ttl: 3600
+
+  # Enable/disable enforcement (false = detection only)
+  enforcement_enabled: true
+
+  # Logging level: DEBUG, INFO, WARNING, ERROR
+  log_level: INFO
+
+  # Auto-reload policy when file changes
+  auto_reload: true
+
+# AWS-specific settings
+aws:
+  # Region(s) where this instance runs
+  regions:
+    - us-east-1
+    - us-west-2
+
+  # Enable AWS metadata service (required for EC2)
+  metadata_service_enabled: true
+
+  # Enable AWS service discovery
+  service_discovery_enabled: true
+
+# Allowed destinations by category
+allowed:
+  # AWS Services - automatically resolved by region
+  aws_services:
+    - name: sns
+      protocol: tcp
+      ports: [443]
+    - name: sqs
+      protocol: tcp
+      ports: [443]
+    - name: s3
+      protocol: tcp
+      ports: [443]
+    - name: dynamodb
+      protocol: tcp
+      ports: [443]
+    - name: kms
+      protocol: tcp
+      ports: [443]
+    - name: logs
+      protocol: tcp
+      ports: [443]
+    - name: cloudwatch
+      protocol: tcp
+      ports: [443]
+    - name: ec2
+      protocol: tcp
+      ports: [443]
+    - name: sts
+      protocol: tcp
+      ports: [443]
+    - name: secretsmanager
+      protocol: tcp
+      ports: [443]
+
+  # Explicit IP addresses (CIDR notation supported)
+  ip_addresses:
+    # AWS Metadata Service (always allowed)
+    - "169.254.169.254/32:80"
+    - "169.254.169.254/32:443"
+    # Example: Internal NTP server
+    # - "10.0.0.5/32:123"
+
+  # Explicit domains (supports wildcards)
+  domains:
+    # Public registries (example)
+    # - domain: "*.docker.io"
+    #   protocol: tcp
+    #   ports: [443]
+
+    # NPM registry
+    - domain: "registry.npmjs.org"
+      protocol: tcp
+      ports: [443]
+
+    # PyPI
+    - domain: "pypi.org"
+      protocol: tcp
+      ports: [443]
+
+    # Ubuntu/Debian repos
+    - domain: "archive.ubuntu.com"
+      protocol: tcp
+      ports: [80, 443]
+
+    - domain: "security.ubuntu.com"
+      protocol: tcp
+      ports: [80, 443]
+
+  # IP ranges by CIDR
+  ip_ranges:
+    # Example: Allow private network
+    # - "10.0.0.0/8"
+    # - "172.16.0.0/12"
+    # - "192.168.0.0/16"
+
+# Deny rules (explicitly block these)
+# These take precedence and are checked first
+deny:
+  # Deny specific dangerous domains
+  domains:
+    # - domain: "malicious.example.com"
+    #   reason: "Known C2 server"
+
+  # Deny IP ranges
+  ip_ranges:
+    # - "8.8.8.8/32"  # Block Google DNS as example
+
+# Logging and monitoring
+logging:
+  # Where to write firewall logs
+  log_file: "/var/log/falco-firewall/enforcement.log"
+
+  # Separately log allowed connections (verbose)
+  allow_log_file: "/var/log/falco-firewall/allowed.log"
+
+  # Log denied connections
+  deny_log_file: "/var/log/falco-firewall/denied.log"
+
+  # Include source process info
+  include_process_info: true
+
+  # Include DNS query details
+  include_dns_details: true
+
+# Alert configuration
+alerts:
+  # Send alerts for policy violations
+  enabled: true
+
+  # Alert types: syslog, webhook, cloudwatch
+  channels:
+    - type: syslog
+      enabled: true
+      facility: "local0"
+      severity: "warning"
+
+    # CloudWatch integration (AWS)
+    - type: cloudwatch
+      enabled: true
+      log_group: "/aws/ec2/firewall-violations"
+      stream_name: "policy-violations"
+
+# Exceptions - processes that bypass firewall
+# Use with caution - should be minimal
+exceptions:
+  # Allow specific processes full access (not recommended)
+  # process_names:
+  #   - "apt"
+  #   - "snap"
+
+  # Allow specific UIDs
+  # uids:
+  #   - 0  # root
+
+# Performance tuning
+performance:
+  # Buffer size for eBPF maps (connections to track)
+  connection_map_size: 10240
+
+  # Update frequency for DNS cache (seconds)
+  resolver_interval: 300
+
+  # Policy reload check interval (seconds)
+  policy_check_interval: 10

@@ -1,0 +1,57 @@
+---
+version: '3.8'
+
+services:
+  # Test application that makes outbound connections
+  test-app:
+    build:
+      context: .
+      dockerfile: tests/Dockerfile.test
+    container_name: falco-firewall-test
+    environment:
+      - LOG_LEVEL=DEBUG
+    volumes:
+      - ./config:/etc/falco-firewall:ro
+      - ./logs:/var/log/falco-firewall
+    networks:
+      - firewall-test
+    depends_on:
+      - falco
+
+  # Falco runtime security monitor
+  falco:
+    image: falcosecurity/falco:latest
+    container_name: falco-monitor
+    privileged: true
+    volumes:
+      - /var/lib/docker:/var/lib/docker
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./config:/etc/falco-firewall:ro
+      - ./falco/rules.yaml:/etc/falco/rules.d/firewall-rules.yaml:ro
+      - ./logs:/var/log/falco
+    environment:
+      - FALCO_K8S_AUDIT_ENDPOINT=
+      - FALCO_GRPC=
+    networks:
+      - firewall-test
+
+  # Mock DNS server for testing
+  mock-dns:
+    image: coredns/coredns:latest
+    container_name: mock-dns
+    volumes:
+      - ./tests/corefile:/etc/coredns/Corefile:ro
+      - ./tests/hosts.db:/etc/coredns/hosts.db:ro
+    ports:
+      - "53:53/udp"
+    networks:
+      - firewall-test
+    command: -conf /etc/coredns/Corefile
+
+volumes:
+  logs:
+    driver: local
+
+networks:
+  firewall-test:
+    driver: bridge

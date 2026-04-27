@@ -1,0 +1,170 @@
+---
+# DNS Redirect Configuration
+# Customize where non-whitelisted domains get redirected
+
+version: "1.0"
+
+# Global redirect settings
+redirect:
+  # Enable/disable redirect mode (false = block with NXDOMAIN)
+  enabled: true
+
+  # Default redirect target for all non-whitelisted domains
+  # Can be:
+  # - "github.com"           (public site)
+  # - "intranet.company.com" (internal site)
+  # - "safe-page.local"      (local page)
+  default_target: "github.com"
+
+  # Category-based redirects (optional)
+  # Route different types of blocked domains to different sites
+  categories:
+    # Adult content → safe landing page
+    adult:
+      pattern: "^(pornhub|xvideos|redtube|brazzers|xnxx)\\."
+      redirect_to: "github.com"
+      description: "Adult content sites"
+
+    # Social media → company intranet
+    social_media:
+      pattern: "^(facebook|twitter|instagram|tiktok|snapchat)\\."
+      redirect_to: "intranet.company.com"
+      description: "Social media sites"
+
+    # Gambling → safe page
+    gambling:
+      pattern: "^(bet365|pokerstars|draftkings|caesars|fanduel)\\."
+      redirect_to: "github.com"
+      description: "Gambling/betting sites"
+
+    # Video streaming → safe page
+    streaming:
+      pattern: "^(netflix|youtube|hulu|disney|twitch)\\."
+      redirect_to: "github.com"
+      description: "Video streaming sites"
+
+# Environment-specific redirect targets
+environments:
+  # Office environment
+  office:
+    default_target: "intranet.company.com"
+    description: "Office/Corporate environment"
+    categories:
+      adult:
+        redirect_to: "intranet.company.com"
+      social_media:
+        redirect_to: "intranet.company.com"
+      gambling:
+        redirect_to: "intranet.company.com"
+
+  # School environment
+  school:
+    default_target: "school-portal.edu"
+    description: "School/University environment"
+    categories:
+      adult:
+        redirect_to: "school-portal.edu"
+      social_media:
+        redirect_to: "school-portal.edu"
+
+  # Home environment
+  home:
+    default_target: "github.com"
+    description: "Home/Personal environment"
+    categories:
+      adult:
+        redirect_to: "github.com"
+      social_media:
+        redirect_to: "github.com"
+
+  # Development environment
+  development:
+    default_target: "localhost:8000"
+    description: "Development/Testing environment"
+    categories:
+      adult:
+        redirect_to: "localhost:8000"
+
+# Redirect targets defined
+targets:
+  github.com:
+    ip: "140.82.113.4"
+    type: "public"
+    description: "GitHub - Safe development platform"
+
+  intranet.company.com:
+    ip: "10.0.1.100"
+    type: "private"
+    description: "Company internal intranet"
+
+  school-portal.edu:
+    ip: "192.168.1.50"
+    type: "private"
+    description: "School portal"
+
+  localhost:
+    ip: "127.0.0.1"
+    type: "local"
+    description: "Local machine"
+
+  ubuntu.com:
+    ip: "185.125.190.81"
+    type: "public"
+    description: "Ubuntu - Linux OS site"
+
+# Advanced options
+advanced:
+  # Log all redirects
+  log_redirects: true
+  log_file: "/var/log/falco-firewall/redirects.log"
+
+  # Show redirect info in browser
+  # (via custom HTTP header or comment)
+  show_redirect_header: false
+
+  # Custom error page for redirects
+  custom_error_page: false
+  error_page_path: "/var/www/html/blocked.html"
+
+  # Enable/disable specific categories
+  enable_categories: true
+
+  # Alert on redirect attempts
+  alert_on_redirect: true
+  alert_channel: "syslog"
+
+# Whitelist (same as main policy, but can override here)
+whitelist:
+  domains:
+    # Development tools
+    - "github.com"
+    - "ubuntu.com"
+    - "registry.npmjs.org"
+    - "pypi.org"
+
+    # AWS Services (ap-south-1 / Mumbai region)
+    - "*.dkr.ecr.ap-south-1.amazonaws.com"  # ECR - Pull container images
+    - "s3.ap-south-1.amazonaws.com"          # S3 - Access buckets
+    - "s3.amazonaws.com"                     # S3 - Global endpoint
+    - "sts.ap-south-1.amazonaws.com"         # STS - Session tokens
+    - "sts.amazonaws.com"                    # STS - Global endpoint
+    # Add company sites
+    # - "company.com"
+    # - "intranet.company.com"
+
+  ips:
+    # Development tools
+    - "140.82.113.4"       # github.com
+    - "185.125.190.81"     # ubuntu.com
+    - "104.16.8.34"        # npmjs.org
+    - "151.101.0.223"      # pypi.org
+
+    # AWS Metadata Service (CRITICAL - do not remove)
+    - "169.254.169.254"    # EC2 metadata, IAM credentials
+
+    # AWS Service IPs (ap-south-1)
+    # NOTE: These are sampled AWS IPs. Run fetch-aws-ips.sh to get complete list
+    - "13.126.0.0/16"      # Amazon ap-south-1 range (sample)
+    - "52.172.0.0/14"      # Amazon APAC ranges (sample)
+    # Add company IPs
+    # - "10.0.1.0/24"       # Company network
