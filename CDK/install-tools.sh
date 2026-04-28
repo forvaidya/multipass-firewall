@@ -28,7 +28,7 @@ sudo apt-get install -y \
 # 1. Install AWS CLI v2
 echo "[3/10] Installing AWS CLI v2..."
 curl "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" -o "awscliv2.zip"
-unzip awscliv2.zip
+unzip -o awscliv2.zip
 sudo ./aws/install --update
 rm -rf aws awscliv2.zip
 
