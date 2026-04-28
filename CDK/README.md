@@ -74,6 +74,32 @@ Or via AWS Console: Systems Manager → Session Manager → Start Session
 - trading-instance-role IAM role must have SSM permissions (AmazonSSMManagedInstanceCore)
 - VPC must have access to SSM endpoints (via NAT Gateway or VPC Endpoints)
 
+## Installing Development Tools
+
+Once connected to the instance, download and run the install script:
+
+```bash
+# Download the script
+curl -O https://raw.githubusercontent.com/forvaidya/multipass-firewall/main/CDK/install-tools.sh
+
+# Make it executable and run
+chmod +x install-tools.sh
+./install-tools.sh
+```
+
+Or run directly:
+
+```bash
+bash <(curl -s https://raw.githubusercontent.com/forvaidya/multipass-firewall/main/CDK/install-tools.sh)
+```
+
+This will install:
+- Git
+- GitHub CLI (gh)
+- Docker (with docker group permissions)
+- docker-compose
+- AWS CLI v2
+
 ## Outputs
 
 After deployment, the CDK will output:
