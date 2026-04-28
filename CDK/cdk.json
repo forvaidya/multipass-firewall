@@ -7,15 +7,9 @@
       "cdk*.json",
       "**/*.d.ts",
       "node_modules",
+      "dist",
       "**/*.js",
       "**/*.ts.js"
     ]
-  },
-  "context": {
-    "@aws-cdk/core:enableStackNameDuplicates": true,
-    "@aws-cdk-containers/ecs-service-extensions:enableDefaultLogDriver": true,
-    "@aws-cdk/core:stackRelativeExports": true,
-    "@aws-cdk/aws-apigateway:usagePlanKeyOrderInsensitiveId": true,
-    "@aws-cdk/core:newStyleStackSynthesis": true
   }
 }

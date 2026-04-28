@@ -15,9 +15,10 @@ export class FirewallStack extends cdk.Stack {
       { mutable: false }
     );
 
-    // Get latest Ubuntu 24.04 LTS Graviton AMI for the region
+    // Get latest Ubuntu LTS Graviton AMI for the region
+    // Using a more flexible search for ARM64 (Graviton) architecture
     const ami = ec2.MachineImage.lookup({
-      name: 'ubuntu/images/hvm-ssd/ubuntu-noble-24.04-arm64-server-*',
+      name: 'ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-arm64-server-*',
       owners: ['099720109477'], // Canonical
       windows: false,
     });
@@ -54,8 +55,6 @@ export class FirewallStack extends cdk.Stack {
       machineImage: ami,
       role: iamRole,
       securityGroup,
-      associatePublicIpAddress: true,
-      keyName: undefined, // SSM-only access, no SSH keys
       blockDevices: [
         {
           deviceName: '/dev/sda1',
