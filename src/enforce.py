@@ -110,7 +110,7 @@ class PolicyManager:
         allowed = self.policy.get('allowed', {})
 
         # Process explicit IPs
-        for ip_cidr in allowed.get('ip_addresses', []):
+        for ip_cidr in (allowed.get('ip_addresses') or []):
             ip, port = self._parse_ip_port(ip_cidr)
             if ip:
                 self.destinations.append(Destination(
@@ -121,7 +121,7 @@ class PolicyManager:
                 ))
 
         # Process IP ranges
-        for cidr in allowed.get('ip_ranges', []):
+        for cidr in (allowed.get('ip_ranges') or []):
             self.destinations.append(Destination(
                 type='ip_range',
                 value=cidr,
@@ -130,7 +130,7 @@ class PolicyManager:
             ))
 
         # Process domains
-        for domain_entry in allowed.get('domains', []):
+        for domain_entry in (allowed.get('domains') or []):
             if isinstance(domain_entry, dict):
                 domain = domain_entry.get('domain')
                 ports = domain_entry.get('ports', [80, 443])
@@ -151,7 +151,7 @@ class PolicyManager:
                     ))
 
         # Process AWS services
-        self._process_aws_services(allowed.get('aws_services', []))
+        self._process_aws_services(allowed.get('aws_services') or [])
 
         logger.info(f"Built {len(self.destinations)} allowed destinations")
 

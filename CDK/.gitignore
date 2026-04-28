@@ -1,0 +1,14 @@
+node_modules/
+dist/
+lib/**/*.js
+lib/**/*.d.ts
+*.js
+*.d.ts
+!bin/cdk.js
+cdk.out/
+.env
+.env.local
+*.swp
+*.swo
+*~
+.DS_Store
