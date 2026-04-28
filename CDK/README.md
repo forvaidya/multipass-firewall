@@ -22,16 +22,22 @@ This CDK stack deploys an EC2 instance in the Mumbai (ap-south-1) region with th
    ```
 4. The IAM role `trading-instance-role` must already exist in your AWS account
 
-## Setup
+## Setup & Deployment
 
 1. Install dependencies:
    ```bash
    npm install
+   npm run build
    ```
 
-2. Build the TypeScript:
+2. Deploy:
    ```bash
-   npm run build
+   cdk deploy
+   ```
+
+3. After instance is created, install development tools:
+   ```bash
+   bash <(curl -s https://raw.githubusercontent.com/forvaidya/multipass-firewall/main/CDK/install-tools.sh)
    ```
 
 ## Deployment

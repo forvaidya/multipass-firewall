@@ -67,53 +67,15 @@ export class FirewallStack extends cdk.Stack {
       ],
     });
 
-    // Add system tools installation via user data
+    // Install only SSM agent via user data
+    // Other tools installed via install-tools.sh script after instance creation
     instance.addUserData(
       '#!/bin/bash',
       'set -e',
-      '',
-      '# Update package manager',
       'apt-get update',
-      '',
-      '# Install SSM agent',
       'apt-get install -y amazon-ssm-agent',
       'systemctl enable amazon-ssm-agent',
-      'systemctl start amazon-ssm-agent',
-      '',
-      '# Install Git',
-      'apt-get install -y git',
-      '',
-      '# Install GitHub CLI',
-      'curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | tee /etc/apt/trusted.gpg.d/github.gpg > /dev/null',
-      'echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/trusted.gpg.d/github.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null',
-      'apt-get update',
-      'apt-get install -y gh',
-      '',
-      '# Install Docker',
-      'apt-get install -y docker.io',
-      'usermod -aG docker ubuntu',
-      'systemctl enable docker',
-      'systemctl start docker',
-      '',
-      '# Install Docker Compose',
-      'curl -L "https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose',
-      'chmod +x /usr/local/bin/docker-compose',
-      '',
-      '# Install AWS CLI v2',
-      'apt-get install -y curl unzip',
-      'curl "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" -o "awscliv2.zip"',
-      'unzip awscliv2.zip',
-      './aws/install',
-      'rm -rf aws awscliv2.zip',
-      '',
-      '# Verify installations',
-      'echo "=== Installation Summary ==="',
-      'git --version',
-      'gh --version',
-      'docker --version',
-      'docker-compose --version',
-      'aws --version',
-      'echo "=== All tools installed successfully ==="'
+      'systemctl start amazon-ssm-agent'
     );
 
     // Tag the instance with Name
