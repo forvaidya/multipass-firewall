@@ -48,6 +48,8 @@ sudo usermod -aG docker ubuntu
 sudo systemctl enable docker
 sudo systemctl start docker
 
+# Apply docker group membership immediately
+newgrp docker << EOF
 # Verify installations
 echo ""
 echo "=== Installation Summary ==="
@@ -59,5 +61,9 @@ docker-compose --version
 echo ""
 echo "✅ All tools installed successfully!"
 echo ""
-echo "Note: Docker group membership has been updated."
-echo "Run 'newgrp docker' or log out and back in to use docker without sudo."
+echo "Note: Docker is now ready to use without sudo."
+echo ""
+echo "If you still get 'permission denied' error:"
+echo "  - Run: newgrp docker"
+echo "  - Or log out and back in"
+EOF
