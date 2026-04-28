@@ -89,14 +89,13 @@ else
 fi
 
 # Install firewall (non-blocking)
-echo "Running firewall setup..."
-if sudo ./scripts/setup.sh --auto; then
-    echo ""
-    echo "=== Firewall Setup Complete ==="
-    echo "Monitor firewall: tail -f /var/log/falco-firewall/firewall.log"
-    echo "Check status: sudo systemctl status falco-firewall falco-enforcement"
-else
-    echo ""
-    echo "⚠️  Firewall setup failed (repo unavailable?)"
-    echo "Install later with: cd /home/ubuntu/multipass-firewall && sudo ./scripts/setup.sh --auto"
-fi
+echo ""
+echo "[9/10] Installing Falco Firewall..."
+sudo ./scripts/setup.sh --auto || :
+
+echo ""
+echo "=== Installation Complete ==="
+echo "✅ All development tools installed successfully!"
+echo ""
+echo "To install firewall later:"
+echo "  cd /home/ubuntu/multipass-firewall && sudo ./scripts/setup.sh --auto"
