@@ -2,9 +2,10 @@ node_modules/
 dist/
 lib/**/*.js
 lib/**/*.d.ts
+!lib/**/*.ts
 *.js
 *.d.ts
-!bin/cdk.js
+!bin/cdk.ts
 cdk.out/
 .env
 .env.local
