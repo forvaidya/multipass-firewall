@@ -79,11 +79,26 @@ echo "  - Run: newgrp docker"
 echo "  - Or log out and back in"
 EOF
 
+# [11/11] Install Firewall (optional, non-blocking)
 echo ""
-echo "=== Installation Complete ==="
-echo "✅ All development tools installed successfully!"
+echo "[11/11] Installing Falco Firewall..."
+if [ -f /home/ubuntu/multipass-firewall/CDK/install-firewall.sh ]; then
+    bash /home/ubuntu/multipass-firewall/CDK/install-firewall.sh || {
+        echo ""
+        echo "⚠️  Firewall installation failed"
+        echo "Try again later: bash /home/ubuntu/multipass-firewall/CDK/install-firewall.sh"
+    }
+elif [ -f ./install-firewall.sh ]; then
+    bash ./install-firewall.sh || {
+        echo ""
+        echo "⚠️  Firewall installation failed"
+        echo "Try again later: bash ./install-firewall.sh"
+    }
+else
+    echo "⚠️  Firewall script not found - skipping"
+    echo "Install later: bash /home/ubuntu/multipass-firewall/CDK/install-firewall.sh"
+fi
+
 echo ""
-echo "To install firewall:"
-echo "  git clone https://github.com/forvaidya/multipass-firewall.git"
-echo "  cd multipass-firewall"
-echo "  sudo ./scripts/setup.sh --auto"
+echo "=== All Installation Complete ==="
+echo "✅ Development tools + Firewall setup done!"
