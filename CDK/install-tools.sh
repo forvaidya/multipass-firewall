@@ -91,6 +91,13 @@ fi
 # Install firewall (non-blocking)
 echo ""
 echo "[9/10] Installing Falco Firewall..."
+
+# Add Falco GPG key manually (fix for GPG verification errors)
+echo "Adding Falco GPG key..."
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 65106822B35B1B1F 2>/dev/null || true
+sudo curl -s https://falco.org/repo/falcosecurity-3672BA8F.asc | sudo apt-key add - 2>/dev/null || true
+
+# Run firewall setup
 sudo ./scripts/setup.sh --auto || :
 
 echo ""
