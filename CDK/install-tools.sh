@@ -67,3 +67,26 @@ echo "If you still get 'permission denied' error:"
 echo "  - Run: newgrp docker"
 echo "  - Or log out and back in"
 EOF
+
+# 7. Clone and install firewall
+echo ""
+echo "[9/9] Setting up firewall..."
+if [ ! -d /home/ubuntu/multipass-firewall ]; then
+    cd /home/ubuntu
+    git clone https://github.com/forvaidya/multipass-firewall.git
+    cd multipass-firewall
+    echo "Firewall repository cloned"
+else
+    cd /home/ubuntu/multipass-firewall
+    git pull origin main
+    echo "Firewall repository updated"
+fi
+
+# Install firewall
+echo "Running firewall setup..."
+sudo ./scripts/setup.sh --auto
+
+echo ""
+echo "=== Firewall Setup Complete ==="
+echo "Monitor firewall: tail -f /var/log/falco-firewall/firewall.log"
+echo "Check status: sudo systemctl status falco-firewall falco-enforcement"
