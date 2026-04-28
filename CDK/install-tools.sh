@@ -29,14 +29,7 @@ sudo apt-get install -y \
 echo "[3/10] Installing AWS CLI v2..."
 curl "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" -o "awscliv2.zip"
 unzip awscliv2.zip
-# Check if AWS CLI already exists and update/install accordingly
-if [ -d "/usr/local/aws-cli" ]; then
-    echo "AWS CLI already installed, updating..."
-    sudo ./aws/install --update
-else
-    echo "Installing AWS CLI..."
-    sudo ./aws/install
-fi
+sudo ./aws/install --update
 rm -rf aws awscliv2.zip
 
 # 3. Install GitHub CLI
