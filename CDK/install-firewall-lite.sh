@@ -43,6 +43,10 @@ sudo mkdir -p "$CONFIG_DIR"
 # Fix hostname resolution for sudo
 echo "127.0.0.1 $(hostname)" | sudo tee -a /etc/hosts > /dev/null 2>&1 || true
 
+# Stop systemd-resolved (conflicts with CoreDNS on port 53)
+sudo systemctl stop systemd-resolved 2>/dev/null || true
+sudo systemctl disable systemd-resolved 2>/dev/null || true
+
 # [F4/F5] Setup nftables rules (whitelist-only firewall)
 echo "[F4/F5] Configuring nftables..."
 sudo bash -c 'cat > /etc/nftables.conf << EOF
