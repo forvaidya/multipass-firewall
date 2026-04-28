@@ -36,14 +36,14 @@ sudo mkdir -p "$INSTALL_DIR"
 sudo mkdir -p "$CONFIG_DIR"
 sudo mkdir -p "$LOG_DIR"
 
-# [F3/F5] Copy firewall repo files
-echo "[F3/F5] Copying firewall configuration..."
-if [ -d "/home/ubuntu/multipass-firewall" ]; then
-    sudo cp -r /home/ubuntu/multipass-firewall/config/* "$CONFIG_DIR/" 2>/dev/null || true
-    sudo cp -r /home/ubuntu/multipass-firewall/src/* "$INSTALL_DIR/" 2>/dev/null || true
-fi
+# [F3/F5] Create configuration directories
+echo "[F3/F5] Creating configuration..."
+sudo mkdir -p "$CONFIG_DIR"
 
-# [F4/F5] Setup nftables rules
+# Fix hostname resolution for sudo
+echo "127.0.0.1 $(hostname)" | sudo tee -a /etc/hosts > /dev/null 2>&1 || true
+
+# [F4/F5] Setup nftables rules (whitelist-only firewall)
 echo "[F4/F5] Configuring nftables..."
 sudo bash -c 'cat > /etc/nftables.conf << EOF
 flush ruleset
@@ -69,16 +69,24 @@ table inet filter {
         # Allow established connections
         ct state established,related accept
 
-        # DNS to CoreDNS
-        ip protocol udp udp dport 53 accept
-        ip protocol tcp tcp dport 53 accept
+        # Allow DNS (port 53) for CoreDNS
+        tcp dport 53 accept
+        udp dport 53 accept
+
+        # Allow HTTPS (port 443)
+        tcp dport 443 accept
+
+        # Allow HTTP (port 80)
+        tcp dport 80 accept
+
+        # Allow ICMP (ping)
+        ip protocol icmp accept
 
         # AWS metadata service
         ip daddr 169.254.169.254 accept
 
-        # Add policy-based rules here
-        # ip daddr {allowed-ips} accept
-        # ip daddr . tcp dport {allowed-domains-ports} accept
+        # Add custom whitelisted IPs/domains here
+        # ip daddr {10.0.0.0/8} accept
     }
 }
 EOF'
