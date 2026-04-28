@@ -1,5 +1,6 @@
 #!/bin/bash
 # Install development tools on firewall-test instance
+# Sequence: git -> aws-cli -> gh -> docker (with group fix)
 # Run as: ./install-tools.sh or bash install-tools.sh
 
 set -e
@@ -7,48 +8,50 @@ set -e
 echo "=== Installing Development Tools ==="
 
 # Update package manager
-echo "[1/5] Updating package manager..."
+echo "[1/6] Updating package manager..."
 sudo apt-get update
 
-# Install Git
-echo "[2/5] Installing Git..."
+# 1. Install Git
+echo "[2/6] Installing Git..."
 sudo apt-get install -y git
 
-# Install Docker
-echo "[3/5] Installing Docker..."
-sudo apt-get install -y docker.io
-sudo usermod -aG docker ubuntu
-sudo systemctl enable docker
-sudo systemctl start docker
-echo "Docker group membership updated - you may need to log out and back in"
-
-# Install GitHub CLI
-echo "[4/5] Installing GitHub CLI..."
-curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /etc/apt/trusted.gpg.d/github.gpg > /dev/null
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/trusted.gpg.d/github.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-sudo apt-get update
-sudo apt-get install -y gh
-
-# Install docker-compose
-echo "[5/5] Installing docker-compose..."
-sudo curl -L "https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
-
-# Install AWS CLI v2
-echo "[6/6] Installing AWS CLI v2..."
+# 2. Install AWS CLI v2
+echo "[3/6] Installing AWS CLI v2..."
 curl "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" -o "awscliv2.zip"
 unzip awscliv2.zip
 sudo ./aws/install
 rm -rf aws awscliv2.zip
 
+# 3. Install GitHub CLI
+echo "[4/6] Installing GitHub CLI..."
+curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /etc/apt/trusted.gpg.d/github.gpg > /dev/null
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/trusted.gpg.d/github.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+sudo apt-get update
+sudo apt-get install -y gh
+
+# 4. Install Docker
+echo "[5/7] Installing Docker..."
+sudo apt-get install -y docker.io
+
+# 5. Install docker-compose
+echo "[6/7] Installing docker-compose..."
+sudo curl -L "https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+
+# 6. Fix docker group permissions
+echo "[7/7] Fixing docker group permissions..."
+sudo usermod -aG docker ubuntu
+sudo systemctl enable docker
+sudo systemctl start docker
+
 # Verify installations
 echo ""
 echo "=== Installation Summary ==="
 git --version
+aws --version
 gh --version
 docker --version
 docker-compose --version
-aws --version
 echo ""
 echo "✅ All tools installed successfully!"
 echo ""
