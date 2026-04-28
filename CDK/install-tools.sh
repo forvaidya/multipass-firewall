@@ -88,11 +88,15 @@ else
     echo "Firewall repository updated"
 fi
 
-# Install firewall
+# Install firewall (non-blocking)
 echo "Running firewall setup..."
-sudo ./scripts/setup.sh --auto
-
-echo ""
-echo "=== Firewall Setup Complete ==="
-echo "Monitor firewall: tail -f /var/log/falco-firewall/firewall.log"
-echo "Check status: sudo systemctl status falco-firewall falco-enforcement"
+if sudo ./scripts/setup.sh --auto; then
+    echo ""
+    echo "=== Firewall Setup Complete ==="
+    echo "Monitor firewall: tail -f /var/log/falco-firewall/firewall.log"
+    echo "Check status: sudo systemctl status falco-firewall falco-enforcement"
+else
+    echo ""
+    echo "⚠️  Firewall setup failed (repo unavailable?)"
+    echo "Install later with: cd /home/ubuntu/multipass-firewall && sudo ./scripts/setup.sh --auto"
+fi
