@@ -74,35 +74,11 @@ echo "  - Run: newgrp docker"
 echo "  - Or log out and back in"
 EOF
 
-# 7. Clone and install firewall
-echo ""
-echo "[8/10] Setting up firewall..."
-if [ ! -d /home/ubuntu/multipass-firewall ]; then
-    cd /home/ubuntu
-    git clone https://github.com/forvaidya/multipass-firewall.git
-    cd multipass-firewall
-    echo "Firewall repository cloned"
-else
-    cd /home/ubuntu/multipass-firewall
-    git pull origin main
-    echo "Firewall repository updated"
-fi
-
-# Install firewall (non-blocking)
-echo ""
-echo "[9/10] Installing Falco Firewall..."
-
-# Add Falco GPG key manually (fix for GPG verification errors)
-echo "Adding Falco GPG key..."
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 65106822B35B1B1F 2>/dev/null || true
-sudo curl -s https://falco.org/repo/falcosecurity-3672BA8F.asc | sudo apt-key add - 2>/dev/null || true
-
-# Run firewall setup
-sudo ./scripts/setup.sh --auto || :
-
 echo ""
 echo "=== Installation Complete ==="
 echo "✅ All development tools installed successfully!"
 echo ""
-echo "To install firewall later:"
-echo "  cd /home/ubuntu/multipass-firewall && sudo ./scripts/setup.sh --auto"
+echo "To install firewall:"
+echo "  git clone https://github.com/forvaidya/multipass-firewall.git"
+echo "  cd multipass-firewall"
+echo "  sudo ./scripts/setup.sh --auto"
