@@ -15,11 +15,20 @@ echo "[F1/F5] Installing dependencies..."
 sudo apt-get update
 sudo apt-get install -y \
     nftables \
-    coredns \
     python3 \
     python3-pip \
     curl \
-    jq
+    jq \
+    wget
+
+# Download CoreDNS binary (aarch64 for Graviton)
+echo "Downloading CoreDNS..."
+COREDNS_VERSION="1.10.1"
+wget -q https://github.com/coredns/coredns/releases/download/v${COREDNS_VERSION}/coredns_${COREDNS_VERSION}_linux_arm64.tgz -O /tmp/coredns.tgz
+tar -xzf /tmp/coredns.tgz -C /tmp/
+sudo mv /tmp/coredns /usr/local/bin/
+sudo chmod +x /usr/local/bin/coredns
+rm -f /tmp/coredns.tgz
 
 # [F2/F5] Create directories
 echo "[F2/F5] Creating directories..."
@@ -80,6 +89,7 @@ sudo systemctl restart nftables
 
 # [F5/F5] Setup CoreDNS
 echo "[F5/F5] Configuring CoreDNS..."
+sudo mkdir -p /etc/coredns
 sudo bash -c 'cat > /etc/coredns/Corefile << EOF
 .:53 {
     forward . 8.8.8.8 8.8.4.4
@@ -88,6 +98,24 @@ sudo bash -c 'cat > /etc/coredns/Corefile << EOF
 }
 EOF'
 
+# Create CoreDNS systemd service
+sudo bash -c 'cat > /etc/systemd/system/coredns.service << EOF
+[Unit]
+Description=CoreDNS
+After=network.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=/usr/local/bin/coredns -conf /etc/coredns/Corefile
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF'
+
+sudo systemctl daemon-reload
 sudo systemctl enable coredns
 sudo systemctl restart coredns
 
