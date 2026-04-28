@@ -41,6 +41,7 @@ export class FirewallStack extends cdk.Stack {
     );
 
     // Create EC2 instance
+    // NOTE: No SSH key configured - access via SSM Session Manager only
     const instance = new ec2.Instance(this, 'FirewallTestInstance', {
       vpc,
       vpcSubnets: {
@@ -54,6 +55,7 @@ export class FirewallStack extends cdk.Stack {
       role: iamRole,
       securityGroup,
       associatePublicIpAddress: true,
+      keyName: undefined, // SSM-only access, no SSH keys
       blockDevices: [
         {
           deviceName: '/dev/sda1',
@@ -64,7 +66,6 @@ export class FirewallStack extends cdk.Stack {
           }),
         },
       ],
-      canContainersAccess: true,
     });
 
     // Add system tools installation via user data
@@ -131,7 +132,7 @@ export class FirewallStack extends cdk.Stack {
     });
 
     new cdk.CfnOutput(this, 'InstancePublicIp', {
-      value: instance.instancePublicIpAddress || 'N/A',
+      value: instance.instancePublicIp || 'N/A',
       description: 'Public IP of firewall-test',
     });
 

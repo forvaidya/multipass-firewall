@@ -60,17 +60,19 @@ cdk destroy
 
 ## Accessing the Instance
 
-Once deployed, you can connect to the instance using:
+**SSM Session Manager Only** - No SSH keys configured
 
-- **AWS Systems Manager Session Manager** (recommended - no SSH key required):
-  ```bash
-  aws ssm start-session --target <instance-id> --region ap-south-1
-  ```
+Connect to the instance using AWS Systems Manager Session Manager:
 
-- **SSH** (if you configure a key pair):
-  ```bash
-  ssh -i <key-pair> ubuntu@<instance-public-ip>
-  ```
+```bash
+aws ssm start-session --target <instance-id> --region ap-south-1
+```
+
+Or via AWS Console: Systems Manager → Session Manager → Start Session
+
+**Requirements for SSM access:**
+- trading-instance-role IAM role must have SSM permissions (AmazonSSMManagedInstanceCore)
+- VPC must have access to SSM endpoints (via NAT Gateway or VPC Endpoints)
 
 ## Outputs
 
