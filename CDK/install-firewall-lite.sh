@@ -111,11 +111,33 @@ EOF'
 sudo systemctl enable nftables
 sudo systemctl restart nftables
 
-# [F5/F5] Setup CoreDNS
+# [F5/F5] Setup CoreDNS with blocklist
 echo "[F5/F5] Configuring CoreDNS..."
 sudo mkdir -p /etc/coredns
+
+# Create domain blocklist
+sudo bash -c 'cat > /etc/coredns/blocklist.hosts << EOF
+# Blocked domains - return NXDOMAIN
+0.0.0.0 pornhub.com
+0.0.0.0 www.pornhub.com
+0.0.0.0 xvideos.com
+0.0.0.0 www.xvideos.com
+0.0.0.0 facebook.com
+0.0.0.0 www.facebook.com
+0.0.0.0 twitter.com
+0.0.0.0 www.twitter.com
+0.0.0.0 instagram.com
+0.0.0.0 www.instagram.com
+0.0.0.0 tiktok.com
+0.0.0.0 www.tiktok.com
+EOF'
+
+# Create CoreDNS Corefile with hosts plugin for blocking
 sudo bash -c 'cat > /etc/coredns/Corefile << EOF
 .:53 {
+    hosts /etc/coredns/blocklist.hosts {
+        fallthrough
+    }
     forward . 8.8.8.8 8.8.4.4
     log
     errors
