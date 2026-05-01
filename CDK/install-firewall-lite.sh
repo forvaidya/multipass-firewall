@@ -118,22 +118,65 @@ sudo mkdir -p /etc/coredns
 # Create domain whitelist - only these domains resolve
 sudo bash -c 'cat > /etc/coredns/whitelist.hosts << EOF
 # Whitelisted domains - only these resolve
+
+# GitHub & Git
 127.0.0.1 github.com
 127.0.0.1 www.github.com
+127.0.0.1 api.github.com
+127.0.0.1 raw.githubusercontent.com
+127.0.0.1 gist.github.com
+127.0.0.1 gist.githubusercontent.com
+127.0.0.1 github.io
+127.0.0.1 githubusercontent.com
+
+# Package managers
 127.0.0.1 ubuntu.com
 127.0.0.1 www.ubuntu.com
 127.0.0.1 registry.npmjs.org
 127.0.0.1 pypi.org
 127.0.0.1 golang.org
 127.0.0.1 pkg.go.dev
-127.0.0.1 api.github.com
-127.0.0.1 raw.githubusercontent.com
 
-# AWS services
+# Zerodha
+127.0.0.1 zerodha.com
+127.0.0.1 www.zerodha.com
+127.0.0.1 kite.zerodha.com
+127.0.0.1 api.zerodha.com
+127.0.0.1 instruments.zerodha.com
+127.0.0.1 quote.zerodha.com
+
+# AWS services (wildcard domains)
 127.0.0.1 amazonaws.com
 127.0.0.1 s3.amazonaws.com
+127.0.0.1 s3-*.amazonaws.com
 127.0.0.1 ec2.amazonaws.com
 127.0.0.1 iam.amazonaws.com
+127.0.0.1 lambda.amazonaws.com
+127.0.0.1 rds.amazonaws.com
+127.0.0.1 dynamodb.amazonaws.com
+127.0.0.1 sqs.amazonaws.com
+127.0.0.1 sns.amazonaws.com
+127.0.0.1 cloudformation.amazonaws.com
+127.0.0.1 cloudwatch.amazonaws.com
+127.0.0.1 logs.amazonaws.com
+127.0.0.1 monitoring.amazonaws.com
+127.0.0.1 kms.amazonaws.com
+127.0.0.1 ssm.amazonaws.com
+127.0.0.1 secretsmanager.amazonaws.com
+127.0.0.1 ecr.amazonaws.com
+127.0.0.1 ecs.amazonaws.com
+127.0.0.1 autoscaling.amazonaws.com
+127.0.0.1 elasticloadbalancing.amazonaws.com
+127.0.0.1 elasticbeanstalk.amazonaws.com
+127.0.0.1 route53.amazonaws.com
+127.0.0.1 cloudfront.amazonaws.com
+
+# AWS regional variants (ap-south-1, us-east-1, etc.)
+127.0.0.1 ap-south-1.amazonaws.com
+127.0.0.1 us-east-1.amazonaws.com
+127.0.0.1 us-west-2.amazonaws.com
+127.0.0.1 eu-west-1.amazonaws.com
+127.0.0.1 eu-central-1.amazonaws.com
 EOF'
 
 # Create CoreDNS Corefile - whitelist mode (default deny)
