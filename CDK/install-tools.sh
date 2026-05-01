@@ -59,8 +59,17 @@ sudo usermod -aG docker ubuntu
 sudo systemctl enable docker
 sudo systemctl start docker
 
-# Apply docker group membership immediately
-newgrp docker << EOF
+# Wait for docker socket to be ready
+sleep 2
+
+# Verify docker socket exists and has correct permissions
+if [ -S /var/run/docker.sock ]; then
+    echo "✓ Docker socket ready"
+else
+    echo "⚠ Docker socket not found, waiting..."
+    sleep 3
+fi
+
 # Verify installations
 echo ""
 echo "=== Installation Summary ==="
@@ -72,12 +81,14 @@ docker-compose --version
 echo ""
 echo "✅ All tools installed successfully!"
 echo ""
-echo "Note: Docker is now ready to use without sudo."
+echo "Docker permission notes:"
+echo "  • Docker group has been added to ubuntu user"
+echo "  • Please activate the new group membership:"
+echo "    - Option 1: Log out and back in"
+echo "    - Option 2: newgrp docker"
 echo ""
-echo "If you still get 'permission denied' error:"
-echo "  - Run: newgrp docker"
-echo "  - Or log out and back in"
-EOF
+echo "Test docker access:"
+echo "  docker ps"
 
 # [11/11] Install Firewall (optional, non-blocking)
 echo ""
