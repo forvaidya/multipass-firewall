@@ -140,14 +140,15 @@ sudo bash -c 'cat > /etc/coredns/blocklist.hosts << EOF
 # 127.0.0.1 www.yourdomain.com
 EOF'
 
-# Create domain whitelist - customize based on your requirements
-# This is just a SAMPLE - add/remove domains and ensure nftables has their IPs whitelisted
+# Create domain whitelist - CONCRETE list of allowed domains
+# These domains are whitelisted at nftables IP level
+# Only add domains that are explicitly approved
 sudo bash -c 'cat > /etc/coredns/whitelist.txt << EOF
-# WHITELIST - domains allowed to resolve
-# This is SAMPLE documentation only
-# Actual enforcement happens at nftables IP level
+# WHITELIST - CONCRETE list of domains allowed to work
+# Enforcement: nftables IP filtering (only these IPs allowed)
+# Modify only after approval by security team
 #
-# Sample allowed domains:
+# Whitelisted domains:
 github.com
 www.github.com
 api.github.com
