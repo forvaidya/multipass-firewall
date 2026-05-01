@@ -115,9 +115,13 @@ sudo systemctl restart nftables
 echo "[F5/F5] Configuring CoreDNS..."
 sudo mkdir -p /etc/coredns
 
-# Create domain blocklist - domains to explicitly block
+# Create domain blocklist - customize this list as needed
+# This is just a SAMPLE - add/remove domains based on your requirements
 sudo bash -c 'cat > /etc/coredns/blocklist.hosts << EOF
-# Explicitly blocked domains - return NXDOMAIN
+# BLOCKLIST - domains to explicitly block (return NXDOMAIN)
+# Customize this list based on your organization policy
+#
+# Sample blocked domains (porn/social media):
 127.0.0.1 pornhub.com
 127.0.0.1 www.pornhub.com
 127.0.0.1 xvideos.com
@@ -130,11 +134,20 @@ sudo bash -c 'cat > /etc/coredns/blocklist.hosts << EOF
 127.0.0.1 www.instagram.com
 127.0.0.1 tiktok.com
 127.0.0.1 www.tiktok.com
+#
+# Add more domains as needed, one per line:
+# 127.0.0.1 yourdomain.com
+# 127.0.0.1 www.yourdomain.com
 EOF'
 
-# Create domain whitelist - only these domains can resolve
+# Create domain whitelist - customize based on your requirements
+# This is just a SAMPLE - add/remove domains and ensure nftables has their IPs whitelisted
 sudo bash -c 'cat > /etc/coredns/whitelist.txt << EOF
-# Whitelisted domains - only these can resolve
+# WHITELIST - domains allowed to resolve
+# This is SAMPLE documentation only
+# Actual enforcement happens at nftables IP level
+#
+# Sample allowed domains:
 github.com
 www.github.com
 api.github.com
