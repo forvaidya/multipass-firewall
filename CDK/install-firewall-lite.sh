@@ -204,8 +204,8 @@ sudo bash -c 'cat > /etc/coredns/Corefile << EOF
         fallthrough
     }
     # 2. ALLOW: Whitelist is enforced at network layer (nftables IP filtering)
-    #    Forward all non-blacklisted queries to Google DNS
-    forward . 8.8.8.8 8.8.4.4
+    #    Forward all non-blacklisted queries to Cloudflare DNS
+    forward . 1.1.1.1 1.0.0.1
     log
     errors
 }
