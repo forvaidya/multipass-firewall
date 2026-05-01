@@ -8,7 +8,7 @@ const app = new cdk.App();
 new FirewallStack(app, 'FirewallStack', {
   env: {
     region: 'ap-south-1', // Mumbai region
-    account: process.env.CDK_DEFAULT_ACCOUNT,
+    account: '521170656618', // AWS account ID
   },
   description: 'CDK stack for firewall-test VM with Ubuntu Graviton',
 });

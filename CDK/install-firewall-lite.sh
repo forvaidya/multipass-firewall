@@ -115,100 +115,34 @@ sudo systemctl restart nftables
 echo "[F5/F5] Configuring CoreDNS..."
 sudo mkdir -p /etc/coredns
 
-# Create domain whitelist - only these domains resolve
-sudo bash -c 'cat > /etc/coredns/whitelist.hosts << EOF
-# Whitelisted domains - only these resolve
-
-# GitHub & Git
-127.0.0.1 github.com
-127.0.0.1 www.github.com
-127.0.0.1 api.github.com
-127.0.0.1 raw.githubusercontent.com
-127.0.0.1 gist.github.com
-127.0.0.1 gist.githubusercontent.com
-127.0.0.1 github.io
-127.0.0.1 githubusercontent.com
-
-# Package managers
-127.0.0.1 ubuntu.com
-127.0.0.1 www.ubuntu.com
-127.0.0.1 registry.npmjs.org
-127.0.0.1 pypi.org
-127.0.0.1 golang.org
-127.0.0.1 pkg.go.dev
-
-# Zerodha
-127.0.0.1 zerodha.com
-127.0.0.1 www.zerodha.com
-127.0.0.1 kite.zerodha.com
-127.0.0.1 api.zerodha.com
-127.0.0.1 instruments.zerodha.com
-127.0.0.1 quote.zerodha.com
-
-# AWS services (base domains)
-127.0.0.1 amazonaws.com
-127.0.0.1 iam.amazonaws.com
-127.0.0.1 route53.amazonaws.com
-127.0.0.1 cloudfront.amazonaws.com
-127.0.0.1 sts.amazonaws.com
-
-# AWS regional services (ap-south-1)
-127.0.0.1 s3.ap-south-1.amazonaws.com
-127.0.0.1 ec2.ap-south-1.amazonaws.com
-127.0.0.1 lambda.ap-south-1.amazonaws.com
-127.0.0.1 rds.ap-south-1.amazonaws.com
-127.0.0.1 dynamodb.ap-south-1.amazonaws.com
-127.0.0.1 sqs.ap-south-1.amazonaws.com
-127.0.0.1 sns.ap-south-1.amazonaws.com
-127.0.0.1 cloudformation.ap-south-1.amazonaws.com
-127.0.0.1 cloudwatch.ap-south-1.amazonaws.com
-127.0.0.1 logs.ap-south-1.amazonaws.com
-127.0.0.1 monitoring.ap-south-1.amazonaws.com
-127.0.0.1 kms.ap-south-1.amazonaws.com
-127.0.0.1 ssm.ap-south-1.amazonaws.com
-127.0.0.1 secretsmanager.ap-south-1.amazonaws.com
-127.0.0.1 ecr.ap-south-1.amazonaws.com
-127.0.0.1 ecs.ap-south-1.amazonaws.com
-127.0.0.1 autoscaling.ap-south-1.amazonaws.com
-127.0.0.1 elasticloadbalancing.ap-south-1.amazonaws.com
-127.0.0.1 sts.ap-south-1.amazonaws.com
-
-# AWS regional services (us-east-1)
-127.0.0.1 s3.us-east-1.amazonaws.com
-127.0.0.1 ec2.us-east-1.amazonaws.com
-127.0.0.1 lambda.us-east-1.amazonaws.com
-127.0.0.1 sts.us-east-1.amazonaws.com
-
-# AWS regional services (us-west-2)
-127.0.0.1 s3.us-west-2.amazonaws.com
-127.0.0.1 ec2.us-west-2.amazonaws.com
-127.0.0.1 sts.us-west-2.amazonaws.com
-
-# AWS regional services (eu-west-1)
-127.0.0.1 s3.eu-west-1.amazonaws.com
-127.0.0.1 ec2.eu-west-1.amazonaws.com
-127.0.0.1 sts.eu-west-1.amazonaws.com
-
-# AWS S3 bucket domains
-127.0.0.1 s3.amazonaws.com
-127.0.0.1 s3-ap-south-1.amazonaws.com
-127.0.0.1 s3-us-east-1.amazonaws.com
-127.0.0.1 s3-us-west-2.amazonaws.com
-127.0.0.1 s3-eu-west-1.amazonaws.com
+# Create domain blocklist - block these domains, allow everything else
+sudo bash -c 'cat > /etc/coredns/blocklist.hosts << EOF
+# Blocked domains - return NXDOMAIN
+127.0.0.1 pornhub.com
+127.0.0.1 www.pornhub.com
+127.0.0.1 xvideos.com
+127.0.0.1 www.xvideos.com
+127.0.0.1 facebook.com
+127.0.0.1 www.facebook.com
+127.0.0.1 twitter.com
+127.0.0.1 www.twitter.com
+127.0.0.1 instagram.com
+127.0.0.1 www.instagram.com
+127.0.0.1 tiktok.com
+127.0.0.1 www.tiktok.com
 EOF'
 
-# Create CoreDNS Corefile - whitelist mode (default deny)
+# Create CoreDNS Corefile - blocklist mode (block porn/social media)
 sudo bash -c 'cat > /etc/coredns/Corefile << EOF
 .:53 {
-    # Only resolve whitelisted domains
-    hosts /etc/coredns/whitelist.hosts {
+    # Block specific domains (return NXDOMAIN)
+    hosts /etc/coredns/blocklist.hosts {
         ttl 3600
-        fallthrough
+        reload 10s
     }
-    # Block everything else by returning NXDOMAIN
-    template IN ANY {
-        rcode NXDOMAIN
-    }
+    # Forward all other queries to Google DNS
+    forward . 8.8.8.8 8.8.4.4
+    # Log all requests
     log
     errors
 }
