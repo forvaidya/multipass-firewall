@@ -44,8 +44,20 @@ sudo mkdir -p "$CONFIG_DIR"
 echo "127.0.0.1 $(hostname)" | sudo tee -a /etc/hosts > /dev/null 2>&1 || true
 
 # Stop systemd-resolved (conflicts with CoreDNS on port 53)
+echo "Stopping systemd-resolved..."
 sudo systemctl stop systemd-resolved 2>/dev/null || true
 sudo systemctl disable systemd-resolved 2>/dev/null || true
+
+# Configure /etc/resolv.conf to use CoreDNS
+echo "Configuring DNS resolver to use CoreDNS..."
+# Note: systemd-resolved creates /etc/resolv.conf as a symlink to stub-resolv.conf.
+# We need to remove this symlink and replace it with a real file pointing to CoreDNS.
+sudo rm -f /etc/resolv.conf
+# Create new resolv.conf pointing to CoreDNS (127.0.0.1:53)
+sudo bash -c 'cat > /etc/resolv.conf << EOF
+nameserver 127.0.0.1
+EOF'
+sudo chmod 644 /etc/resolv.conf
 
 # [F4/F5] Setup nftables rules (whitelist-only firewall)
 echo "[F4/F5] Configuring nftables..."
@@ -142,5 +154,6 @@ echo ""
 echo "Check rules:"
 echo "  sudo nft list ruleset"
 echo ""
-echo "Update DNS in /etc/resolv.conf to use CoreDNS:"
-echo "  echo 'nameserver 127.0.0.1' | sudo tee /etc/resolv.conf"
+echo "Verify DNS resolver:"
+echo "  cat /etc/resolv.conf"
+echo "  nslookup google.com"
