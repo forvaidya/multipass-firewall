@@ -182,17 +182,16 @@ ec2.ap-south-1.amazonaws.com
 sts.ap-south-1.amazonaws.com
 EOF'
 
-# Create CoreDNS Corefile - blocklist first, then whitelist, then block
+# Create CoreDNS Corefile - blocklist + whitelist via nftables
 sudo bash -c 'cat > /etc/coredns/Corefile << EOF
 .:53 {
-    # 1. Block explicitly blocked domains (pornhub, facebook, etc)
+    # 1. BLOCK: Explicitly blacklisted domains (pornhub, facebook, etc)
     hosts /etc/coredns/blocklist.hosts {
         fallthrough
     }
-    # 2. Forward to Google DNS (queries reaching here are not blocked)
-    #    Only whitelisted domains will resolve; others will fail at next layer
+    # 2. ALLOW: Whitelist is enforced at network layer (nftables IP filtering)
+    #    Forward all non-blacklisted queries to Google DNS
     forward . 8.8.8.8 8.8.4.4
-    # 3. Log all requests
     log
     errors
 }
