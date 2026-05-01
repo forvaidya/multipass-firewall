@@ -115,9 +115,9 @@ sudo systemctl restart nftables
 echo "[F5/F5] Configuring CoreDNS..."
 sudo mkdir -p /etc/coredns
 
-# Create domain blocklist - block these domains, allow everything else
+# Create domain blocklist - map to 127.0.0.1 to block
 sudo bash -c 'cat > /etc/coredns/blocklist.hosts << EOF
-# Blocked domains - return NXDOMAIN
+# Blocked domains - map to 127.0.0.1 to fail connections
 127.0.0.1 pornhub.com
 127.0.0.1 www.pornhub.com
 127.0.0.1 xvideos.com
@@ -132,17 +132,13 @@ sudo bash -c 'cat > /etc/coredns/blocklist.hosts << EOF
 127.0.0.1 www.tiktok.com
 EOF'
 
-# Create CoreDNS Corefile - blocklist mode (block porn/social media)
+# Create CoreDNS Corefile - simple blocklist + forward
 sudo bash -c 'cat > /etc/coredns/Corefile << EOF
 .:53 {
-    # Block specific domains (return NXDOMAIN)
     hosts /etc/coredns/blocklist.hosts {
-        ttl 3600
-        reload 10s
+        fallthrough
     }
-    # Forward all other queries to Google DNS
     forward . 8.8.8.8 8.8.4.4
-    # Log all requests
     log
     errors
 }
