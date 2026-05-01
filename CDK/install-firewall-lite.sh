@@ -89,10 +89,10 @@ table inet filter {
         tcp dport 53 accept
         udp dport 53 accept
 
-        # Allow HTTPS (port 443)
+        # Allow HTTPS (port 443) - DNS filtering handles domain blocking
         tcp dport 443 accept
 
-        # Allow HTTP (port 80)
+        # Allow HTTP (port 80) - DNS filtering handles domain blocking
         tcp dport 80 accept
 
         # Allow ICMP (ping)
@@ -100,9 +100,6 @@ table inet filter {
 
         # AWS metadata service
         ip daddr 169.254.169.254 accept
-
-        # Add custom whitelisted IPs/domains here
-        # ip daddr {10.0.0.0/8} accept
     }
 }
 EOF'
@@ -196,15 +193,17 @@ ec2.ap-south-1.amazonaws.com
 sts.ap-south-1.amazonaws.com
 EOF'
 
-# Create CoreDNS Corefile - blocklist + whitelist via nftables
+# Create CoreDNS Corefile - DNS-level blocklist only
 sudo bash -c 'cat > /etc/coredns/Corefile << EOF
 .:53 {
     # 1. BLOCK: Explicitly blacklisted domains (pornhub, facebook, etc)
+    #    These domains return NXDOMAIN (no such domain)
     hosts /etc/coredns/blocklist.hosts {
         fallthrough
     }
-    # 2. ALLOW: Whitelist is enforced at network layer (nftables IP filtering)
-    #    Forward all non-blacklisted queries to Cloudflare DNS
+    # 2. ALLOW: All other domains forward to Cloudflare DNS
+    #    Security relies on DNS blocklist, not IP whitelisting
+    #    Works with services that have dynamic IPs (GitHub, Zerodha, etc.)
     forward . 1.1.1.1 1.0.0.1
     log
     errors
