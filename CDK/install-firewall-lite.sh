@@ -145,38 +145,56 @@ sudo bash -c 'cat > /etc/coredns/whitelist.hosts << EOF
 127.0.0.1 instruments.zerodha.com
 127.0.0.1 quote.zerodha.com
 
-# AWS services (wildcard domains)
+# AWS services (base domains)
 127.0.0.1 amazonaws.com
-127.0.0.1 s3.amazonaws.com
-127.0.0.1 s3-*.amazonaws.com
-127.0.0.1 ec2.amazonaws.com
 127.0.0.1 iam.amazonaws.com
-127.0.0.1 lambda.amazonaws.com
-127.0.0.1 rds.amazonaws.com
-127.0.0.1 dynamodb.amazonaws.com
-127.0.0.1 sqs.amazonaws.com
-127.0.0.1 sns.amazonaws.com
-127.0.0.1 cloudformation.amazonaws.com
-127.0.0.1 cloudwatch.amazonaws.com
-127.0.0.1 logs.amazonaws.com
-127.0.0.1 monitoring.amazonaws.com
-127.0.0.1 kms.amazonaws.com
-127.0.0.1 ssm.amazonaws.com
-127.0.0.1 secretsmanager.amazonaws.com
-127.0.0.1 ecr.amazonaws.com
-127.0.0.1 ecs.amazonaws.com
-127.0.0.1 autoscaling.amazonaws.com
-127.0.0.1 elasticloadbalancing.amazonaws.com
-127.0.0.1 elasticbeanstalk.amazonaws.com
 127.0.0.1 route53.amazonaws.com
 127.0.0.1 cloudfront.amazonaws.com
+127.0.0.1 sts.amazonaws.com
 
-# AWS regional variants (ap-south-1, us-east-1, etc.)
-127.0.0.1 ap-south-1.amazonaws.com
-127.0.0.1 us-east-1.amazonaws.com
-127.0.0.1 us-west-2.amazonaws.com
-127.0.0.1 eu-west-1.amazonaws.com
-127.0.0.1 eu-central-1.amazonaws.com
+# AWS regional services (ap-south-1)
+127.0.0.1 s3.ap-south-1.amazonaws.com
+127.0.0.1 ec2.ap-south-1.amazonaws.com
+127.0.0.1 lambda.ap-south-1.amazonaws.com
+127.0.0.1 rds.ap-south-1.amazonaws.com
+127.0.0.1 dynamodb.ap-south-1.amazonaws.com
+127.0.0.1 sqs.ap-south-1.amazonaws.com
+127.0.0.1 sns.ap-south-1.amazonaws.com
+127.0.0.1 cloudformation.ap-south-1.amazonaws.com
+127.0.0.1 cloudwatch.ap-south-1.amazonaws.com
+127.0.0.1 logs.ap-south-1.amazonaws.com
+127.0.0.1 monitoring.ap-south-1.amazonaws.com
+127.0.0.1 kms.ap-south-1.amazonaws.com
+127.0.0.1 ssm.ap-south-1.amazonaws.com
+127.0.0.1 secretsmanager.ap-south-1.amazonaws.com
+127.0.0.1 ecr.ap-south-1.amazonaws.com
+127.0.0.1 ecs.ap-south-1.amazonaws.com
+127.0.0.1 autoscaling.ap-south-1.amazonaws.com
+127.0.0.1 elasticloadbalancing.ap-south-1.amazonaws.com
+127.0.0.1 sts.ap-south-1.amazonaws.com
+
+# AWS regional services (us-east-1)
+127.0.0.1 s3.us-east-1.amazonaws.com
+127.0.0.1 ec2.us-east-1.amazonaws.com
+127.0.0.1 lambda.us-east-1.amazonaws.com
+127.0.0.1 sts.us-east-1.amazonaws.com
+
+# AWS regional services (us-west-2)
+127.0.0.1 s3.us-west-2.amazonaws.com
+127.0.0.1 ec2.us-west-2.amazonaws.com
+127.0.0.1 sts.us-west-2.amazonaws.com
+
+# AWS regional services (eu-west-1)
+127.0.0.1 s3.eu-west-1.amazonaws.com
+127.0.0.1 ec2.eu-west-1.amazonaws.com
+127.0.0.1 sts.eu-west-1.amazonaws.com
+
+# AWS S3 bucket domains
+127.0.0.1 s3.amazonaws.com
+127.0.0.1 s3-ap-south-1.amazonaws.com
+127.0.0.1 s3-us-east-1.amazonaws.com
+127.0.0.1 s3-us-west-2.amazonaws.com
+127.0.0.1 s3-eu-west-1.amazonaws.com
 EOF'
 
 # Create CoreDNS Corefile - whitelist mode (default deny)
