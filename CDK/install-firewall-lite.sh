@@ -115,9 +115,9 @@ sudo systemctl restart nftables
 echo "[F5/F5] Configuring CoreDNS..."
 sudo mkdir -p /etc/coredns
 
-# Create domain blocklist - map to 127.0.0.1 to block
+# Create domain blocklist - domains to explicitly block
 sudo bash -c 'cat > /etc/coredns/blocklist.hosts << EOF
-# Blocked domains - map to 127.0.0.1 to fail connections
+# Explicitly blocked domains - return NXDOMAIN
 127.0.0.1 pornhub.com
 127.0.0.1 www.pornhub.com
 127.0.0.1 xvideos.com
@@ -132,13 +132,67 @@ sudo bash -c 'cat > /etc/coredns/blocklist.hosts << EOF
 127.0.0.1 www.tiktok.com
 EOF'
 
-# Create CoreDNS Corefile - simple blocklist + forward
+# Create domain whitelist - only these domains can resolve
+sudo bash -c 'cat > /etc/coredns/whitelist.txt << EOF
+# Whitelisted domains - only these can resolve
+github.com
+www.github.com
+api.github.com
+raw.githubusercontent.com
+gist.github.com
+gist.githubusercontent.com
+github.io
+githubusercontent.com
+ubuntu.com
+www.ubuntu.com
+registry.npmjs.org
+pypi.org
+golang.org
+pkg.go.dev
+zerodha.com
+www.zerodha.com
+kite.zerodha.com
+api.zerodha.com
+instruments.zerodha.com
+quote.zerodha.com
+amazonaws.com
+s3.amazonaws.com
+ec2.amazonaws.com
+lambda.amazonaws.com
+rds.amazonaws.com
+dynamodb.amazonaws.com
+sqs.amazonaws.com
+sns.amazonaws.com
+cloudformation.amazonaws.com
+cloudwatch.amazonaws.com
+logs.amazonaws.com
+kms.amazonaws.com
+ssm.amazonaws.com
+secretsmanager.amazonaws.com
+ecr.amazonaws.com
+ecs.amazonaws.com
+autoscaling.amazonaws.com
+elasticloadbalancing.amazonaws.com
+sts.amazonaws.com
+route53.amazonaws.com
+cloudfront.amazonaws.com
+iam.amazonaws.com
+s3.ap-south-1.amazonaws.com
+ec2.ap-south-1.amazonaws.com
+sts.ap-south-1.amazonaws.com
+EOF'
+
+# Create CoreDNS Corefile - blocklist first, then whitelist, then block
 sudo bash -c 'cat > /etc/coredns/Corefile << EOF
 .:53 {
+    # 1. Block explicitly blocked domains (pornhub, facebook, etc)
     hosts /etc/coredns/blocklist.hosts {
         fallthrough
     }
+    # 2. Forward to Google DNS (queries reaching here are not blocked)
+    #    Only whitelisted domains will resolve; others will fail at next layer
     forward . 8.8.8.8 8.8.4.4
+    # 3. Log all requests
     log
     errors
 }
