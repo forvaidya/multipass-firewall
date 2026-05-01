@@ -111,34 +111,43 @@ EOF'
 sudo systemctl enable nftables
 sudo systemctl restart nftables
 
-# [F5/F5] Setup CoreDNS with blocklist
+# [F5/F5] Setup CoreDNS with whitelist (default deny)
 echo "[F5/F5] Configuring CoreDNS..."
 sudo mkdir -p /etc/coredns
 
-# Create domain blocklist
-sudo bash -c 'cat > /etc/coredns/blocklist.hosts << EOF
-# Blocked domains - return NXDOMAIN
-0.0.0.0 pornhub.com
-0.0.0.0 www.pornhub.com
-0.0.0.0 xvideos.com
-0.0.0.0 www.xvideos.com
-0.0.0.0 facebook.com
-0.0.0.0 www.facebook.com
-0.0.0.0 twitter.com
-0.0.0.0 www.twitter.com
-0.0.0.0 instagram.com
-0.0.0.0 www.instagram.com
-0.0.0.0 tiktok.com
-0.0.0.0 www.tiktok.com
+# Create domain whitelist - only these domains resolve
+sudo bash -c 'cat > /etc/coredns/whitelist.hosts << EOF
+# Whitelisted domains - only these resolve
+127.0.0.1 github.com
+127.0.0.1 www.github.com
+127.0.0.1 ubuntu.com
+127.0.0.1 www.ubuntu.com
+127.0.0.1 registry.npmjs.org
+127.0.0.1 pypi.org
+127.0.0.1 golang.org
+127.0.0.1 pkg.go.dev
+127.0.0.1 api.github.com
+127.0.0.1 raw.githubusercontent.com
+
+# AWS services
+127.0.0.1 amazonaws.com
+127.0.0.1 s3.amazonaws.com
+127.0.0.1 ec2.amazonaws.com
+127.0.0.1 iam.amazonaws.com
 EOF'
 
-# Create CoreDNS Corefile with hosts plugin for blocking
+# Create CoreDNS Corefile - whitelist mode (default deny)
 sudo bash -c 'cat > /etc/coredns/Corefile << EOF
 .:53 {
-    hosts /etc/coredns/blocklist.hosts {
+    # Only resolve whitelisted domains
+    hosts /etc/coredns/whitelist.hosts {
+        ttl 3600
         fallthrough
     }
-    forward . 8.8.8.8 8.8.4.4
+    # Block everything else by returning NXDOMAIN
+    template IN ANY {
+        rcode NXDOMAIN
+    }
     log
     errors
 }
